@@ -1,26 +1,38 @@
-import re
-import json
+import csv
 import os
 
 # 데이터 파일 경로
-DATA_FILE = "user_group_data.json"
+DATA_FILE = "user_group_data.csv"
 PASSWD_FILE = "/etc/passwd"
 
 # 초기 데이터 생성
 def initialize_data():
     if not os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "w") as file:
-            json.dump({}, file)
+        with open(DATA_FILE, "w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["user", "groups"])
 
 # 데이터 읽기
 def read_data():
+    data = {}
+    if not os.path.exists(DATA_FILE):
+        return data
+
     with open(DATA_FILE, "r") as file:
-        return json.load(file)
+        reader = csv.DictReader(file)
+        for row in reader:
+            user = row["user"]
+            groups = row["groups"].split(",") if row["groups"] else []
+            data[user] = groups
+    return data
 
 # 데이터 쓰기
 def write_data(data):
-    with open(DATA_FILE, "w") as file:
-        json.dump(data, file, indent=4)
+    with open(DATA_FILE, "w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["user", "groups"])
+        for user, groups in data.items():
+            writer.writerow([user, ",".join(groups)])
 
 # /etc/passwd 파일에서 유저 정보 읽고 필터링
 def read_and_filter_users(prefix="user"):
@@ -57,23 +69,19 @@ def read_and_filter_users(prefix="user"):
 def create_group():
     data = read_data()
     group_name = input("Enter group name to create: ")
-    if group_name in data:
+    if group_name in {group for groups in data.values() for group in groups}:
         print(f"Group '{group_name}' already exists.")
     else:
-        data[group_name] = []
-        write_data(data)
         print(f"Group '{group_name}' created.")
 
 # 그룹 삭제
 def delete_group():
     data = read_data()
     group_name = input("Enter group name to delete: ")
-    if group_name in data:
-        del data[group_name]
-        write_data(data)
-        print(f"Group '{group_name}' deleted.")
-    else:
-        print(f"Group '{group_name}' does not exist.")
+
+    updated_data = {user: [group for group in groups if group != group_name] for user, groups in data.items()}
+    write_data(updated_data)
+    print(f"Group '{group_name}' deleted.")
 
 # 그룹에 사용자 추가
 def add_user_to_group():
@@ -82,18 +90,17 @@ def add_user_to_group():
     group_name = input("Enter group name: ")
     user_name = input("Enter username to add: ")
 
-    if group_name not in data:
-        print(f"Group '{group_name}' does not exist.")
-        return
-
     if user_name not in [user["username"] for user in users]:
         print(f"User '{user_name}' does not exist in the system.")
         return
 
-    if user_name in data[group_name]:
+    if user_name not in data:
+        data[user_name] = []
+
+    if group_name in data[user_name]:
         print(f"User '{user_name}' is already in group '{group_name}'.")
     else:
-        data[group_name].append(user_name)
+        data[user_name].append(group_name)
         write_data(data)
         print(f"User '{user_name}' added to group '{group_name}'.")
 
@@ -103,40 +110,33 @@ def remove_user_from_group():
     group_name = input("Enter group name: ")
     user_name = input("Enter username to remove: ")
 
-    if group_name not in data:
-        print(f"Group '{group_name}' does not exist.")
-        return
-
-    if user_name in data[group_name]:
-        data[group_name].remove(user_name)
+    if user_name not in data or group_name not in data[user_name]:
+        print(f"User '{user_name}' is not in group '{group_name}'.")
+    else:
+        data[user_name].remove(group_name)
         write_data(data)
         print(f"User '{user_name}' removed from group '{group_name}'.")
-    else:
-        print(f"User '{user_name}' is not in group '{group_name}'.")
 
 # 그룹별 사용자 출력
 def list_users_in_group():
     data = read_data()
     group_name = input("Enter group name: ")
 
-    if group_name in data:
-        users = data[group_name]
-        if users:
-            print(f"Users in group '{group_name}': {', '.join(users)}")
-        else:
-            print(f"No users in group '{group_name}'.")
+    users_in_group = [user for user, groups in data.items() if group_name in groups]
+    if users_in_group:
+        print(f"Users in group '{group_name}': {', '.join(users_in_group)}")
     else:
-        print(f"Group '{group_name}' does not exist.")
+        print(f"No users in group '{group_name}'.")
 
 # 유저 목록 출력
 def list_users():
-    users = read_and_filter_users()
-    if users:
-        print("Users from /etc/passwd:")
-        for user in users:
-            print(f"- {user['username']} (UID: {user['uid']}, GID: {user['gid']})")
+    data = read_data()
+    if data:
+        print("Users and their groups:")
+        for user, groups in data.items():
+            print(f"- {user}: {', '.join(groups)}")
     else:
-        print("No users matching the filter were found.")
+        print("No users or groups found.")
 
 # 메인 메뉴
 def main():
