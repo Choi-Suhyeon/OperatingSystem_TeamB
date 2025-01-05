@@ -7,6 +7,23 @@ METADATA_FILE = ".group_permissions.metadata"
 
 # 초기 설정: 메타데이터 파일 생성
 def initialize_metadata():
+    global METADATA_FILE
+    directory = input("Enter the directory to store metadata file: ").strip()
+    # 절대 경로 구하기
+    absolute_directory = os.path.abspath(directory)
+
+    # 파일명 제거 및 디렉토리 추출
+    if os.path.isfile(absolute_directory):
+        absolute_directory = os.path.dirname(absolute_directory)
+
+    # 디렉토리 생성
+    if not os.path.exists(absolute_directory):
+        os.makedirs(absolute_directory)
+
+    # 메타데이터 파일 경로 설정
+    METADATA_FILE = os.path.join(absolute_directory, ".group_permissions.metadata")
+
+    # 메타데이터 파일 생성
     if not os.path.exists(METADATA_FILE):
         with open(METADATA_FILE, "w") as file:
             file.write("")
