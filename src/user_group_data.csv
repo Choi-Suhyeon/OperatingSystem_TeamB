@@ -1,6 +1,7 @@
 user,groups
 user1,"A,B"
-user2,B
-user6,"C,B"
-user5,C
+user2,"B,D"
+user6,C
+user5,"C,D"
 user4,B
+user7,"C,A"

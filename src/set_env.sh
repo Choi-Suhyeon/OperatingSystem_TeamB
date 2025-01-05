@@ -2,11 +2,11 @@
 
 set -e
 
-for i in {1..7}; do
-    user_name="user$i"
-
-    sudo useradd -d "/home/$user_name" -s /bin/bash "$user_name" && echo "$user_name:$user_name" | sudo chpasswd 
-done
+# for i in {1..7}; do
+#     user_name="user$i"
+# 
+#     sudo useradd -d "/home/$user_name" -s /bin/bash "$user_name" && echo "$user_name:$user_name" | sudo chpasswd 
+# done
 
 sudo mkdir '/home/test'
 sudo chmod 777 '/home/test'

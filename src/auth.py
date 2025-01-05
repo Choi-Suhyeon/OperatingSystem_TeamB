@@ -76,7 +76,7 @@ def assign_permissions():
     group_data = read_csv_data(GROUP_DATA_FILE)
     permissions = read_metadata(METADATA_FILE)
 
-    file_name = input("Enter the file name to assign permissions: ")
+    file_name = os.path.basename(input("Enter the file name to assign permissions: "))
     group_name = input("Enter the group name to assign permissions: ")
     if group_name not in {group for groups in group_data.values() for group in groups}:
         print(f"Group '{group_name}' does not exist in '{GROUP_DATA_FILE}'.")
