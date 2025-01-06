@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from tabulate import tabulate
 from functools import reduce
 
