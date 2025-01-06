@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
 from tabulate import tabulate
-from functools import reduce
 
 import argparse
 import csv
 import sys
 import os
 
-DATA_FILE = "user_group_data.csv"
+DATA_FILE = "user_group_data.csv" # 유저와 그룹 간 관계 정보를 저장할 파일.
 
+# 명령행 인자 파싱 함수
 def parse_args():
     def is_valid_args(command, target, args):
         if target not in ('usr', 'grp'):
@@ -39,6 +39,7 @@ def parse_args():
 
     return result
 
+# DATA_FILE에서 정보를 읽는 함수
 def read_data():
     data = {}
 
@@ -55,6 +56,7 @@ def read_data():
 
     return data
 
+# DATA_FILE에 정보를 쓰는 함수
 def write_data(data):
     with open(DATA_FILE, "w", newline="") as file:
         writer = csv.writer(file)
@@ -64,9 +66,11 @@ def write_data(data):
         for user, groups in data.items():
             writer.writerow([user, ",".join(groups)])
 
+# 유저를 기준으로 속한 그룹을 표 형태로 만들어 반환하는 함수
 def list_users(data):
     return tabulate(sorted([[u, ', '.join(sorted(gs))] for u, gs in data.items()], key=lambda x: x[0]), tablefmt='rst', headers=('User', 'Groups'))
 
+# 그룹을 기준으로 속한 유저를 표 형태로 만들어 반환하는 함수
 def list_groups(data):
     users_in_groups = {}
 
@@ -76,6 +80,7 @@ def list_groups(data):
 
     return tabulate(sorted([[g, ', '.join(sorted(us))] for g, us in users_in_groups.items()], key=lambda x: x[0]), tablefmt='rst', headers=('Group', 'Users'))
 
+# 그룹을 새로 만드는 함수
 def add_group(data, args):
     [group_name, *users] = args
 
@@ -90,6 +95,7 @@ def add_group(data, args):
 
     return data
 
+# 그룹을 제거하는 함수
 def remove_group(data, args):
     [group_name, *users] = args
 
@@ -101,7 +107,7 @@ def remove_group(data, args):
 
     return data
     
-
+# 그룹들에 유저를 추가하는 함수
 def add_user(data, args):
     [user_name, *groups] = args
 
@@ -111,6 +117,7 @@ def add_user(data, args):
 
     return data
 
+# 그룹들에서 유저를 제거하는 함수
 def remove_user(data, args):
     [user_name, *groups] = args
 
@@ -128,6 +135,7 @@ def remove_user(data, args):
     
     return data
 
+# main. side effect를 수반하는 함수(read_data, write_data)의 호출은 여기서만 이루어짐.
 if __name__ == "__main__":
     parsed_args     = parse_args() 
     user_group_data = read_data()
